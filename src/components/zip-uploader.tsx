@@ -1,5 +1,5 @@
 import { readZipFile } from '@/lib/user-definition-parser';
-import { ParsedUserDefinition } from '@/lib/types/user-definition.types';
+import type { ParsedUserDefinition } from '@/lib/types/user-definition.types';
 import { Upload, FileArchive, X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';

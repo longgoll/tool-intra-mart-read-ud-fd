@@ -6,7 +6,6 @@ import {
 } from '@/components/ui/resizable';
 import { FileTreeExplorer } from '@/components/file-tree-explorer';
 import { MonacoEditorViewer } from '@/components/monaco-editor-viewer';
-import { ZipUploader } from '@/components/zip-uploader';
 import type {
   FileTreeNode,
   ParsedUserDefinition,
@@ -17,7 +16,7 @@ import { FileCode2 } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 
 export function ContentRoute() {
-  const { parsedData: contextParsedData, setParsedData: setContextParsedData } = useAppContext();
+  const { parsedData: contextParsedData } = useAppContext();
   const [parsedData, setParsedData] = useState<ParsedUserDefinition | null>(null);
   const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
   const [selectedDefinition, setSelectedDefinition] =
@@ -31,14 +30,6 @@ export function ContentRoute() {
       setFileTree(tree);
     }
   }, [contextParsedData]);
-
-  const handleZipLoaded = (data: ParsedUserDefinition) => {
-    setParsedData(data);
-    setContextParsedData(data);
-    const tree = buildFileTree(data);
-    setFileTree(tree);
-    setSelectedDefinition(null);
-  };
 
   const handleFileSelect = (node: FileTreeNode) => {
     if (node.type === 'file' && node.definition) {
@@ -72,9 +63,6 @@ export function ContentRoute() {
         )}
       </header>
 
-      {/* Upload Section - chỉ hiển thị khi chưa có data */}
-      {!parsedData && <ZipUploader onZipLoaded={handleZipLoaded} />}
-
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {fileTree.length > 0 ? (
@@ -107,7 +95,7 @@ export function ContentRoute() {
                 Chào mừng đến với Logic Designer Viewer
               </h2>
               <p className="text-sm mb-6">
-                Tải lên file <code className="px-2 py-1 bg-muted rounded text-xs">im_logicdesigner-data.zip</code> để bắt đầu
+                Chưa có dữ liệu để hiển thị
               </p>
               <div className="text-left bg-muted/50 rounded-lg p-4 text-xs space-y-2">
                 <p className="font-semibold mb-2">Tính năng:</p>
