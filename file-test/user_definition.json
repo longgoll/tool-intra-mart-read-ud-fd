@@ -1,0 +1,29 @@
+{
+    "userCategories": [
+        {
+            "categoryId": "dp_nim059_uc001",
+            "categoryName": "NIM059_SPC",
+            "sortNumber": 0,
+            "iconId": null,
+            "localizes": {
+                "zh_CN": {
+                    "locale": "zh_CN",
+                    "categoryName": "NIM059_SPC"
+                },
+                "en": {
+                    "locale": "en",
+                    "categoryName": "NIM059_SPC"
+                },
+                "ja": {
+                    "locale": "ja",
+                    "categoryName": "NIM059_SPC"
+                }
+            },
+            "displayName": "NIM059_SPC"
+        }
+    ],
+    "userDefinitions": [
+        "{\"definitionId\":\"dp_nim059_ude14\",\"version\":1,\"categoryId\":\"dp_nim059_uc001\",\"definitionType\":\"sql\",\"definitionName\":\"dp_nim059_ユーザーコード読込\",\"sortNumber\":100,\"definitionData\":{\"elementId\":\"im_queryExecutor\",\"iconId\":null,\"elementProperties\":{\"query\":\"-------------------------\\n--dp_nim059_ude14\\n-------------------------\\nSELECT\\n    DISTINCT usercd\\nFROM\\n    IMFR_UT_DP_NIM059_APL403\\nWHERE\\n    MODELCD = /*p_modelcd*/''\",\"queryType\":\"SELECT\",\"databaseType\":\"SHARED\",\"connectId\":\"dp_nim059_x\",\"limitation\":false},\"inputDataDefinition\":{\"entrypoint\":{\"typeId\":\"root\",\"basic\":false,\"required\":false,\"listingType\":\"none\"},\"typeDefinitions\":[{\"id\":\"root\",\"properties\":[{\"typeId\":\"string\",\"name\":\"p_modelcd\",\"description\":null,\"listingType\":\"none\",\"basic\":true,\"required\":false}]},{\"id\":\"string\",\"properties\":[]}]},\"outputDataDefinition\":{\"entrypoint\":{\"typeId\":\"root\",\"basic\":false,\"required\":false,\"listingType\":\"none\"},\"typeDefinitions\":[{\"id\":\"root\",\"properties\":[{\"typeId\":\"string\",\"name\":\"query\",\"description\":null,\"listingType\":\"none\",\"basic\":true,\"required\":false},{\"typeId\":\"integer\",\"name\":\"count\",\"description\":null,\"listingType\":\"none\",\"basic\":true,\"required\":false},{\"typeId\":\"im_logic_object_1\",\"name\":\"records\",\"description\":null,\"listingType\":\"list\",\"basic\":false,\"required\":false}]},{\"id\":\"im_logic_object_1\",\"properties\":[{\"typeId\":\"string\",\"name\":\"USERCD\",\"description\":null,\"listingType\":\"none\",\"basic\":true,\"required\":false}]},{\"id\":\"string\",\"properties\":[]},{\"id\":\"integer\",\"properties\":[]}]}},\"localize\":{\"en\":\"dp_nim059_ude14\"}}",
+        "{\"definitionId\":\"dp_nim059_ude79\",\"version\":1,\"categoryId\":\"dp_nim059_uc001\",\"definitionType\":\"javascript\",\"definitionName\":\"dp_nim059_ude79_部番重複除外\",\"sortNumber\":100,\"definitionData\":{\"elementId\":\"im_scriptExecutor\",\"iconId\":null,\"elementProperties\":{\"script\":\"/**\\r\\n * run.\\r\\n *\\r\\n * @param input {Object} - task input data.\\r\\n * @return {Object} task result.\\r\\n */\\r\\nfunction run(input) {\\r\\n  let oleCode = input.p_code ? input.p_code : [];\\r\\n  let oleValue = input.p_value ? input.p_value : [];\\r\\n  let dataLenght = input.codeLength;\\r\\n  \\r\\n  let newCode = [];\\r\\n  let newValue = [];\\r\\n  \\r\\n  for(let i=0 ; i<dataLenght ; i++){\\r\\n    if(newValue.indexOf(oleValue[i]) >= 0)\\r\\n      continue;\\r\\n      \\r\\n    newCode.push(oleCode[i]);\\r\\n    newValue.push(oleValue[i]);\\r\\n  }\\r\\n\\r\\n\\treturn {\\r\\n\\t\\tnewCode: newCode,\\r\\n\\t\\tnewValue: newValue\\r\\n\\t};\\r\\n}\\r\\n\"},\"inputDataDefinition\":{\"entrypoint\":{\"typeId\":\"root\",\"basic\":false,\"required\":false,\"listingType\":\"none\"},\"typeDefinitions\":[{\"id\":\"root\",\"properties\":[{\"typeId\":\"string\",\"name\":\"p_code\",\"description\":null,\"listingType\":\"list\",\"basic\":true,\"required\":false},{\"typeId\":\"string\",\"name\":\"p_value\",\"description\":null,\"listingType\":\"list\",\"basic\":true,\"required\":false},{\"typeId\":\"integer\",\"name\":\"codeLength\",\"description\":null,\"listingType\":\"none\",\"basic\":true,\"required\":false}]},{\"id\":\"string\",\"properties\":[]},{\"id\":\"integer\",\"properties\":[]}]},\"outputDataDefinition\":{\"entrypoint\":{\"typeId\":\"root\",\"basic\":false,\"required\":false,\"listingType\":\"none\"},\"typeDefinitions\":[{\"id\":\"root\",\"properties\":[{\"typeId\":\"string\",\"name\":\"newCode\",\"description\":null,\"listingType\":\"list\",\"basic\":true,\"required\":false},{\"typeId\":\"string\",\"name\":\"newValue\",\"description\":null,\"listingType\":\"list\",\"basic\":true,\"required\":false}]},{\"id\":\"string\",\"properties\":[]}]}},\"localize\":{}}"
+    ]
+}
