@@ -2,14 +2,15 @@ import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/re
 import { IndexRoute } from './routes/index'
 import { ContentRoute } from './routes/content'
 import { Toaster } from '@/components/ui/sonner'
+import { AppProvider } from '@/contexts/AppContext'
 
 // Root route với layout chung
 const rootRoute = createRootRoute({
   component: () => (
-    <>
+    <AppProvider>
       <Outlet />
       <Toaster position="top-right" />
-    </>
+    </AppProvider>
   ),
 })
 

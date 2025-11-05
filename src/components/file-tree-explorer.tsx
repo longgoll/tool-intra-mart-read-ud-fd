@@ -1,4 +1,4 @@
-import { FileTreeNode } from '@/lib/types/user-definition.types';
+import type { FileTreeNode } from '@/lib/types/user-definition.types';
 import { ChevronDown, ChevronRight, FileCode, Folder, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';

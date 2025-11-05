@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button'
 import { Upload, FileArchive, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
+import { useAppContext } from '@/contexts/AppContext'
+import { readZipFile } from '@/lib/user-definition-parser'
 
 type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export function FileUpload() {
   const navigate = useNavigate()
+  const { setParsedData, setUploadedFile } = useAppContext()
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<UploadStatus>('idle')
   const [isDragging, setIsDragging] = useState(false)
@@ -79,31 +82,22 @@ export function FileUpload() {
     }
 
     setStatus('loading')
-    toast.loading('Đang upload file...', {
+    toast.loading('Đang xử lý file...', {
       id: 'upload-toast'
     })
 
     try {
-      // Giả lập upload API
-      const formData = new FormData()
-      formData.append('file', file)
+      // Parse file ZIP thực sự
+      const parsed = await readZipFile(file)
 
-      // Simulate API call
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // Giả lập thành công (90% thành công, 10% thất bại)
-          if (Math.random() > 0.1) {
-            resolve('success')
-          } else {
-            reject(new Error('Upload failed'))
-          }
-        }, 2000)
-      })
+      // Lưu vào Context
+      setParsedData(parsed)
+      setUploadedFile(file)
 
       setStatus('success')
-      toast.success('Upload thành công!', {
+      toast.success('Xử lý thành công!', {
         id: 'upload-toast',
-        description: `File ${file.name} đã được upload thành công`
+        description: `Đã tải ${parsed.userDefinitions.length} definitions từ ${parsed.userCategories.length} categories`
       })
 
       // Chuyển sang trang nội dung sau 1 giây
@@ -112,9 +106,9 @@ export function FileUpload() {
       }, 1000)
     } catch (error) {
       setStatus('error')
-      toast.error('Upload thất bại', {
+      toast.error('Xử lý file thất bại', {
         id: 'upload-toast',
-        description: error instanceof Error ? error.message : 'Có lỗi xảy ra khi upload file'
+        description: error instanceof Error ? error.message : 'Có lỗi xảy ra khi xử lý file'
       })
     }
   }

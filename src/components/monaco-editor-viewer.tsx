@@ -1,5 +1,5 @@
 import Editor from '@monaco-editor/react';
-import { UserDefinition } from '@/lib/types/user-definition.types';
+import type { UserDefinition } from '@/lib/types/user-definition.types';
 import {
   extractDefinitionContent,
   getEditorLanguage,

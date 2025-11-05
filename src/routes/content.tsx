@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -14,17 +14,27 @@ import type {
 } from '@/lib/types/user-definition.types';
 import { buildFileTree } from '@/lib/user-definition-parser';
 import { FileCode2 } from 'lucide-react';
+import { useAppContext } from '@/contexts/AppContext';
 
 export function ContentRoute() {
-  const [parsedData, setParsedData] = useState<ParsedUserDefinition | null>(
-    null
-  );
+  const { parsedData: contextParsedData, setParsedData: setContextParsedData } = useAppContext();
+  const [parsedData, setParsedData] = useState<ParsedUserDefinition | null>(null);
   const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
   const [selectedDefinition, setSelectedDefinition] =
     useState<UserDefinition | null>(null);
 
+  // Load data từ Context khi component mount
+  useEffect(() => {
+    if (contextParsedData) {
+      setParsedData(contextParsedData);
+      const tree = buildFileTree(contextParsedData);
+      setFileTree(tree);
+    }
+  }, [contextParsedData]);
+
   const handleZipLoaded = (data: ParsedUserDefinition) => {
     setParsedData(data);
+    setContextParsedData(data);
     const tree = buildFileTree(data);
     setFileTree(tree);
     setSelectedDefinition(null);
@@ -62,8 +72,8 @@ export function ContentRoute() {
         )}
       </header>
 
-      {/* Upload Section */}
-      <ZipUploader onZipLoaded={handleZipLoaded} />
+      {/* Upload Section - chỉ hiển thị khi chưa có data */}
+      {!parsedData && <ZipUploader onZipLoaded={handleZipLoaded} />}
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
