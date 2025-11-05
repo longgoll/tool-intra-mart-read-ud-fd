@@ -7,13 +7,85 @@ import {
 import { Copy, Download, FileCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
+import { useEffect, useRef } from 'react';
+import type { editor } from 'monaco-editor';
+
+interface HighlightPosition {
+  lineNumber: number;
+  column: number;
+  matchLength: number;
+}
 
 interface MonacoEditorViewerProps {
   definition: UserDefinition | null;
+  highlightPositions?: HighlightPosition[];
 }
 
-export function MonacoEditorViewer({ definition }: MonacoEditorViewerProps) {
+export function MonacoEditorViewer({ definition, highlightPositions }: MonacoEditorViewerProps) {
   const { theme } = useTheme();
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const decorationsRef = useRef<string[]>([]);
+
+  // Handle editor mount
+  const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+    editorRef.current = editorInstance;
+  };
+
+  // Apply highlights when positions change
+  useEffect(() => {
+    if (!editorRef.current || !highlightPositions || highlightPositions.length === 0) {
+      // Clear previous decorations
+      if (decorationsRef.current.length > 0) {
+        decorationsRef.current = editorRef.current?.deltaDecorations(decorationsRef.current, []) || [];
+      }
+      return;
+    }
+
+    const editor = editorRef.current;
+
+    // Create decorations for highlights
+    const newDecorations = highlightPositions.map((pos) => ({
+      range: {
+        startLineNumber: pos.lineNumber,
+        startColumn: pos.column,
+        endLineNumber: pos.lineNumber,
+        endColumn: pos.column + pos.matchLength,
+      },
+      options: {
+        isWholeLine: false,
+        className: 'search-match-highlight',
+        inlineClassName: 'search-match-inline',
+        overviewRuler: {
+          color: '#fbbf24',
+          position: 4, // Full width
+        },
+        minimap: {
+          color: '#fbbf24',
+          position: 1, // Inline
+        },
+      },
+    }));
+
+    // Apply decorations
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+
+    // Scroll to first match and center it
+    if (highlightPositions.length > 0) {
+      const firstMatch = highlightPositions[0];
+      editor.revealLineInCenter(firstMatch.lineNumber, 0);
+      
+      // Also set cursor position at the match
+      editor.setPosition({
+        lineNumber: firstMatch.lineNumber,
+        column: firstMatch.column,
+      });
+
+      // Flash animation (brief focus)
+      setTimeout(() => {
+        editor.focus();
+      }, 100);
+    }
+  }, [highlightPositions, definition]);
 
   if (!definition) {
     return (
@@ -102,6 +174,7 @@ export function MonacoEditorViewer({ definition }: MonacoEditorViewerProps) {
           language={language}
           value={content}
           theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
+          onMount={handleEditorDidMount}
           options={{
             readOnly: true,
             minimap: { enabled: true },
@@ -116,6 +189,24 @@ export function MonacoEditorViewer({ definition }: MonacoEditorViewerProps) {
             },
           }}
         />
+        {/* Custom CSS for highlight styling */}
+        <style>{`
+          .search-match-highlight {
+            background-color: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+          }
+          .search-match-inline {
+            background-color: rgba(251, 191, 36, 0.3);
+            color: inherit;
+          }
+          .dark .search-match-highlight {
+            background-color: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+          }
+          .dark .search-match-inline {
+            background-color: rgba(251, 191, 36, 0.25);
+          }
+        `}</style>
       </div>
 
       {/* Footer - Additional Info */}

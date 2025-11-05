@@ -13,6 +13,9 @@ export interface SearchResult {
   matches: {
     field: 'definitionName' | 'content';
     snippet: string;
+    lineNumber?: number; // Line number where match was found
+    column?: number; // Column number where match starts
+    matchLength?: number; // Length of the matched text
   }[];
   score: number;
 }
@@ -144,14 +147,17 @@ class SearchIndexService {
           ? extractDefinitionContent(definition)
           : definition.definitionName;
 
-        const snippet = this.createSnippet(content, query);
+        const matchInfo = this.createSnippetWithPosition(content, query);
 
         formattedResults.push({
           definition,
           matches: [
             {
               field,
-              snippet,
+              snippet: matchInfo.snippet,
+              lineNumber: matchInfo.lineNumber,
+              column: matchInfo.column,
+              matchLength: query.length,
             },
           ],
           score: 1, // FlexSearch doesn't provide scores directly
@@ -163,17 +169,34 @@ class SearchIndexService {
   }
 
   /**
-   * Create a text snippet around the search match
+   * Create a text snippet around the search match with position info
    */
-  private createSnippet(text: string, query: string, contextLength: number = 100): string {
+  private createSnippetWithPosition(
+    text: string,
+    query: string,
+    contextLength: number = 100
+  ): {
+    snippet: string;
+    lineNumber?: number;
+    column?: number;
+  } {
     const lowerText = text.toLowerCase();
     const lowerQuery = query.toLowerCase();
     const index = lowerText.indexOf(lowerQuery);
 
     if (index === -1) {
-      return text.substring(0, contextLength) + '...';
+      return {
+        snippet: text.substring(0, contextLength) + '...',
+      };
     }
 
+    // Calculate line number and column
+    const textBeforeMatch = text.substring(0, index);
+    const lines = textBeforeMatch.split('\n');
+    const lineNumber = lines.length;
+    const column = lines[lines.length - 1].length + 1;
+
+    // Create snippet
     const start = Math.max(0, index - contextLength / 2);
     const end = Math.min(text.length, index + query.length + contextLength / 2);
 
@@ -182,8 +205,11 @@ class SearchIndexService {
     if (start > 0) snippet = '...' + snippet;
     if (end < text.length) snippet = snippet + '...';
 
-    // Highlight the match (you can render this with HTML later)
-    return snippet;
+    return {
+      snippet,
+      lineNumber,
+      column,
+    };
   }
 
   /**

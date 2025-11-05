@@ -29,6 +29,13 @@ export function ContentRoute() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchFilterType, setSearchFilterType] = useState<'all' | 'sql' | 'javascript'>('all');
+  
+  // Highlight positions for search results
+  const [highlightPositions, setHighlightPositions] = useState<{
+    lineNumber: number;
+    column: number;
+    matchLength: number;
+  }[]>([]);
 
   // Load file tree when categories are available
   useEffect(() => {
@@ -107,11 +114,14 @@ export function ContentRoute() {
       // If definition is already in node, use it
       if (node.definition) {
         setSelectedDefinition(node.definition);
+        // Clear highlights when selecting from file tree
+        setHighlightPositions([]);
       } else {
         // Otherwise, fetch from IndexedDB
         const def = await getDefinition(node.id);
         if (def) {
           setSelectedDefinition(def);
+          setHighlightPositions([]);
         }
       }
     }
@@ -121,16 +131,30 @@ export function ContentRoute() {
     const def = await getDefinition(definitionId);
     if (def) {
       setSelectedDefinition(def);
+      // Clear highlights for quick search dialog
+      setHighlightPositions([]);
     }
   };
 
   const handleSearchResultSelect = async (result: SearchResult) => {
     setSelectedDefinition(result.definition);
+    
+    // Extract highlight positions from search result matches
+    const positions = result.matches
+      .filter(match => match.lineNumber && match.column && match.matchLength)
+      .map(match => ({
+        lineNumber: match.lineNumber!,
+        column: match.column!,
+        matchLength: match.matchLength!,
+      }));
+    
+    setHighlightPositions(positions);
   };
 
   const handleClearSearchResults = () => {
     setSearchQuery('');
     setSearchResults([]);
+    setHighlightPositions([]);
   };
 
   return (
@@ -198,7 +222,10 @@ export function ContentRoute() {
             {/* Editor Area */}
             <ResizablePanel defaultSize={75}>
               <div className="h-full">
-                <MonacoEditorViewer definition={selectedDefinition} />
+                <MonacoEditorViewer 
+                  definition={selectedDefinition}
+                  highlightPositions={highlightPositions}
+                />
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>

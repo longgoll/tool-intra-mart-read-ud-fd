@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, FileCode2, Loader2, X } from 'lucide-react';
+import { Search, FileCode2, Loader2, X, MapPin } from 'lucide-react';
 import type { SearchResult } from '@/lib/services/search-index.service';
 
 interface SearchResultsPanelProps {
@@ -142,6 +142,12 @@ export function SearchResultsPanel({
                         {result.matches.slice(0, 2).map((match, i) => (
                           <div key={i} className="text-[11px] text-muted-foreground">
                             <span className="font-medium capitalize">{match.field}:</span>{' '}
+                            {match.lineNumber && (
+                              <span className="inline-flex items-center gap-1 text-primary mr-1">
+                                <MapPin className="h-3 w-3" />
+                                L{match.lineNumber}
+                              </span>
+                            )}
                             <span className="line-clamp-1">
                               {highlightMatch(match.snippet, query)}
                             </span>
