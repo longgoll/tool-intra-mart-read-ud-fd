@@ -14,6 +14,7 @@ import type {
 import { buildFileTree } from '@/lib/user-definition-parser';
 import { FileCode2 } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function ContentRoute() {
   const { parsedData: contextParsedData } = useAppContext();
@@ -50,17 +51,20 @@ export function ContentRoute() {
             </p>
           </div>
         </div>
-        {parsedData && (
-          <div className="flex gap-4 text-sm text-muted-foreground">
-            <span>
-              {parsedData.userCategories.length} categories
-            </span>
-            <span className="text-muted-foreground/50">•</span>
-            <span>
-              {parsedData.userDefinitions.length} definitions
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-4">
+          {parsedData && (
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <span>
+                {parsedData.userCategories.length} categories
+              </span>
+              <span className="text-muted-foreground/50">•</span>
+              <span>
+                {parsedData.userDefinitions.length} definitions
+              </span>
+            </div>
+          )}
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}

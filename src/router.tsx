@@ -3,14 +3,17 @@ import { IndexRoute } from './routes/index'
 import { ContentRoute } from './routes/content'
 import { Toaster } from '@/components/ui/sonner'
 import { AppProvider } from '@/contexts/AppContext'
+import { ThemeProvider } from 'next-themes'
 
 // Root route với layout chung
 const rootRoute = createRootRoute({
   component: () => (
-    <AppProvider>
-      <Outlet />
-      <Toaster position="top-right" />
-    </AppProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AppProvider>
+        <Outlet />
+        <Toaster position="top-right" />
+      </AppProvider>
+    </ThemeProvider>
   ),
 })
 
