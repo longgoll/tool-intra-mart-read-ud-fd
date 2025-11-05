@@ -139,6 +139,44 @@ class IndexedDBService {
   }
 
   /**
+   * Append parsed data to existing data in IndexedDB (không xóa dữ liệu cũ)
+   * Dùng cho upload nhiều file
+   */
+  async appendParsedData(data: ParsedUserDefinition): Promise<void> {
+    const db = await this.init();
+    
+    // Single transaction: Add categories, definitions, and update metadata
+    const transaction = db.transaction(
+      [STORES.DEFINITIONS, STORES.CATEGORIES, STORES.METADATA],
+      'readwrite'
+    );
+
+    // Append categories (put sẽ update nếu đã tồn tại)
+    const categoryStore = transaction.objectStore(STORES.CATEGORIES);
+    for (const category of data.userCategories) {
+      categoryStore.put(category);
+    }
+
+    // Append definitions
+    const defStore = transaction.objectStore(STORES.DEFINITIONS);
+    for (const definition of data.userDefinitions) {
+      defStore.put(definition);
+    }
+
+    // Update metadata (chỉ update timestamp, không count để tránh lỗi transaction)
+    const metadataStore = transaction.objectStore(STORES.METADATA);
+    metadataStore.put({
+      key: 'lastUpdated',
+      value: new Date().toISOString(),
+    });
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
+
+  /**
    * Get all categories
    */
   async getCategories(): Promise<UserCategory[]> {
@@ -275,7 +313,7 @@ class IndexedDBService {
   /**
    * Get metadata
    */
-  async getMetadata(key: string): Promise<any> {
+  async getMetadata(key: string): Promise<unknown> {
     const db = await this.init();
     const transaction = db.transaction(STORES.METADATA, 'readonly');
     const store = transaction.objectStore(STORES.METADATA);
@@ -283,6 +321,21 @@ class IndexedDBService {
     return new Promise((resolve, reject) => {
       const request = store.get(key);
       request.onsuccess = () => resolve(request.result?.value);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Update metadata
+   */
+  async updateMetadata(key: string, value: unknown): Promise<void> {
+    const db = await this.init();
+    const transaction = db.transaction(STORES.METADATA, 'readwrite');
+    const store = transaction.objectStore(STORES.METADATA);
+
+    return new Promise((resolve, reject) => {
+      const request = store.put({ key, value });
+      request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   }
