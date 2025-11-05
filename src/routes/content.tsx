@@ -4,7 +4,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { FileTreeExplorer } from '@/components/file-tree-explorer';
+import { Sidebar } from '@/components/sidebar';
 import { MonacoEditorViewer } from '@/components/monaco-editor-viewer';
 import { SearchDialog } from '@/components/search-dialog';
 import type {
@@ -14,6 +14,8 @@ import type {
 import { FileCode2, Loader2 } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { searchIndexService } from '@/lib/services/search-index.service';
+import type { SearchResult } from '@/lib/services/search-index.service';
 
 export function ContentRoute() {
   const { isDataLoaded, categories, stats, getDefinitionsByCategory, getDefinition } = useAppContext();
@@ -21,6 +23,12 @@ export function ContentRoute() {
   const [selectedDefinition, setSelectedDefinition] =
     useState<UserDefinition | null>(null);
   const [isLoadingTree, setIsLoadingTree] = useState(false);
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchFilterType, setSearchFilterType] = useState<'all' | 'sql' | 'javascript'>('all');
 
   // Load file tree when categories are available
   useEffect(() => {
@@ -66,6 +74,34 @@ export function ContentRoute() {
     buildTreeFromDB();
   }, [isDataLoaded, categories, getDefinitionsByCategory]);
 
+  // Search with debounce
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!searchQuery.trim() || searchQuery.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const definitionType = searchFilterType === 'all' ? undefined : searchFilterType;
+        const results = await searchIndexService.search(searchQuery, {
+          limit: 50,
+          definitionType,
+        });
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(performSearch, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, searchFilterType]);
+
   const handleFileSelect = async (node: FileTreeNode) => {
     if (node.type === 'file') {
       // If definition is already in node, use it
@@ -86,6 +122,15 @@ export function ContentRoute() {
     if (def) {
       setSelectedDefinition(def);
     }
+  };
+
+  const handleSearchResultSelect = async (result: SearchResult) => {
+    setSelectedDefinition(result.definition);
+  };
+
+  const handleClearSearchResults = () => {
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   return (
@@ -131,15 +176,21 @@ export function ContentRoute() {
           </div>
         ) : fileTree.length > 0 ? (
           <ResizablePanelGroup direction="horizontal">
-            {/* Sidebar - File Tree */}
+            {/* Sidebar - VS Code style with tabs */}
             <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
-              <div className="h-full border-r bg-muted/30">
-                <FileTreeExplorer
-                  tree={fileTree}
-                  onFileSelect={handleFileSelect}
-                  selectedFileId={selectedDefinition?.definitionId}
-                />
-              </div>
+              <Sidebar
+                fileTree={fileTree}
+                onFileSelect={handleFileSelect}
+                selectedFileId={selectedDefinition?.definitionId}
+                searchResults={searchResults}
+                isSearching={isSearching}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                onSearchResultSelect={handleSearchResultSelect}
+                searchFilterType={searchFilterType}
+                onSearchFilterChange={setSearchFilterType}
+                onClearSearchResults={handleClearSearchResults}
+              />
             </ResizablePanel>
 
             <ResizableHandle withHandle />

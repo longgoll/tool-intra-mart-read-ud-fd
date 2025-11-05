@@ -123,8 +123,8 @@ export function FileTreeExplorer({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-2 border-b">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-center justify-between p-2 border-b shrink-0">
         <span className="text-sm font-semibold">File Explorer</span>
         <div className="flex gap-1">
           <button
@@ -143,9 +143,11 @@ export function FileTreeExplorer({
           </button>
         </div>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="p-2">{tree.map((node) => renderTreeNode(node, 0))}</div>
-      </ScrollArea>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-2">{tree.map((node) => renderTreeNode(node, 0))}</div>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
