@@ -6,35 +6,85 @@ import {
 } from '@/components/ui/resizable';
 import { FileTreeExplorer } from '@/components/file-tree-explorer';
 import { MonacoEditorViewer } from '@/components/monaco-editor-viewer';
+import { SearchDialog } from '@/components/search-dialog';
 import type {
   FileTreeNode,
-  ParsedUserDefinition,
   UserDefinition,
 } from '@/lib/types/user-definition.types';
-import { buildFileTree } from '@/lib/user-definition-parser';
-import { FileCode2 } from 'lucide-react';
+import { FileCode2, Loader2 } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function ContentRoute() {
-  const { parsedData: contextParsedData } = useAppContext();
-  const [parsedData, setParsedData] = useState<ParsedUserDefinition | null>(null);
+  const { isDataLoaded, categories, stats, getDefinitionsByCategory, getDefinition } = useAppContext();
   const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
   const [selectedDefinition, setSelectedDefinition] =
     useState<UserDefinition | null>(null);
+  const [isLoadingTree, setIsLoadingTree] = useState(false);
 
-  // Load data từ Context khi component mount
+  // Load file tree when categories are available
   useEffect(() => {
-    if (contextParsedData) {
-      setParsedData(contextParsedData);
-      const tree = buildFileTree(contextParsedData);
-      setFileTree(tree);
-    }
-  }, [contextParsedData]);
+    const buildTreeFromDB = async () => {
+      if (!isDataLoaded || categories.length === 0) return;
 
-  const handleFileSelect = (node: FileTreeNode) => {
-    if (node.type === 'file' && node.definition) {
-      setSelectedDefinition(node.definition);
+      setIsLoadingTree(true);
+      try {
+        const tree: FileTreeNode[] = [];
+
+        for (const category of categories) {
+          const definitions = await getDefinitionsByCategory(category.categoryId);
+
+          // Create file nodes for definitions
+          const fileNodes: FileTreeNode[] = definitions.map((def) => ({
+            id: def.definitionId,
+            name: def.definitionName,
+            type: 'file',
+            definition: def,
+          }));
+
+          // Create folder node
+          const folderNode: FileTreeNode = {
+            id: category.categoryId,
+            name: category.displayName,
+            type: 'folder',
+            category,
+            children: fileNodes,
+            expanded: false,
+          };
+
+          tree.push(folderNode);
+        }
+
+        setFileTree(tree);
+      } catch (error) {
+        console.error('Failed to build file tree:', error);
+      } finally {
+        setIsLoadingTree(false);
+      }
+    };
+
+    buildTreeFromDB();
+  }, [isDataLoaded, categories, getDefinitionsByCategory]);
+
+  const handleFileSelect = async (node: FileTreeNode) => {
+    if (node.type === 'file') {
+      // If definition is already in node, use it
+      if (node.definition) {
+        setSelectedDefinition(node.definition);
+      } else {
+        // Otherwise, fetch from IndexedDB
+        const def = await getDefinition(node.id);
+        if (def) {
+          setSelectedDefinition(def);
+        }
+      }
+    }
+  };
+
+  const handleSearchSelect = async (definitionId: string) => {
+    const def = await getDefinition(definitionId);
+    if (def) {
+      setSelectedDefinition(def);
     }
   };
 
@@ -52,16 +102,19 @@ export function ContentRoute() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {parsedData && (
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <span>
-                {parsedData.userCategories.length} categories
-              </span>
-              <span className="text-muted-foreground/50">•</span>
-              <span>
-                {parsedData.userDefinitions.length} definitions
-              </span>
-            </div>
+          {isDataLoaded && (
+            <>
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span>
+                  {stats.categoryCount} categories
+                </span>
+                <span className="text-muted-foreground/50">•</span>
+                <span>
+                  {stats.definitionCount} definitions
+                </span>
+              </div>
+              <SearchDialog onSelectDefinition={handleSearchSelect} />
+            </>
           )}
           <ThemeToggle />
         </div>
@@ -69,7 +122,14 @@ export function ContentRoute() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        {fileTree.length > 0 ? (
+        {isLoadingTree ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+            </div>
+          </div>
+        ) : fileTree.length > 0 ? (
           <ResizablePanelGroup direction="horizontal">
             {/* Sidebar - File Tree */}
             <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
