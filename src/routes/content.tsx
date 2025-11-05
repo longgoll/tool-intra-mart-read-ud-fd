@@ -7,13 +7,15 @@ import {
 import { Sidebar } from '@/components/sidebar';
 import { MonacoEditorViewer } from '@/components/monaco-editor-viewer';
 import { SearchDialog } from '@/components/search-dialog';
+import { SettingsDialog } from '@/components/settings-dialog';
 import type {
   FileTreeNode,
   UserDefinition,
 } from '@/lib/types/user-definition.types';
-import { FileCode2, Loader2 } from 'lucide-react';
+import { FileCode2, Loader2, Settings } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from '@/components/ui/button';
 import { searchIndexService } from '@/lib/services/search-index.service';
 import type { SearchResult } from '@/lib/services/search-index.service';
 
@@ -29,6 +31,9 @@ export function ContentRoute() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchFilterType, setSearchFilterType] = useState<'all' | 'sql' | 'javascript'>('all');
+  
+  // Settings state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   // Highlight positions for search results
   const [highlightPositions, setHighlightPositions] = useState<{
@@ -186,8 +191,19 @@ export function ContentRoute() {
             </>
           )}
           <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsSettingsOpen(true)}
+            title="Cài đặt"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
         </div>
       </header>
+
+      {/* Settings Dialog */}
+      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">

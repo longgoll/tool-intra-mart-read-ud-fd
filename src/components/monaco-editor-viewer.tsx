@@ -7,7 +7,7 @@ import {
 import { Copy, Download, FileCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { editor } from 'monaco-editor';
 
 interface HighlightPosition {
@@ -25,11 +25,33 @@ export function MonacoEditorViewer({ definition, highlightPositions }: MonacoEdi
   const { theme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const decorationsRef = useRef<string[]>([]);
+  const [fontSize, setFontSize] = useState(() => {
+    return parseInt(localStorage.getItem('editor-font-size') || '14', 10);
+  });
 
   // Handle editor mount
   const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
     editorRef.current = editorInstance;
   };
+
+  // Listen for font size changes from settings
+  useEffect(() => {
+    const handleFontSizeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<string>;
+      const newSize = parseInt(customEvent.detail, 10);
+      setFontSize(newSize);
+      
+      // Update editor font size
+      if (editorRef.current) {
+        editorRef.current.updateOptions({ fontSize: newSize });
+      }
+    };
+
+    window.addEventListener('editor-font-size-change', handleFontSizeChange);
+    return () => {
+      window.removeEventListener('editor-font-size-change', handleFontSizeChange);
+    };
+  }, []);
 
   // Apply highlights when positions change
   useEffect(() => {
@@ -178,7 +200,7 @@ export function MonacoEditorViewer({ definition, highlightPositions }: MonacoEdi
           options={{
             readOnly: true,
             minimap: { enabled: true },
-            fontSize: 14,
+            fontSize: fontSize,
             lineNumbers: 'on',
             scrollBeyondLastLine: false,
             automaticLayout: true,
