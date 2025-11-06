@@ -98,7 +98,7 @@ export function ContentRoute() {
       try {
         const definitionType = searchFilterType === 'all' ? undefined : searchFilterType;
         const results = await searchIndexService.search(searchQuery, {
-          limit: 50,
+          limit: 1000,
           definitionType,
         });
         setSearchResults(results);
