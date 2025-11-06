@@ -26,6 +26,12 @@ interface SearchResultsPanelProps {
   categories: UserCategory[];
   selectedCategoryId: string;
   onCategoryChange: (categoryId: string) => void;
+  searchMode: 'basic' | 'advanced';
+  onSearchModeChange: (mode: 'basic' | 'advanced') => void;
+  advancedQuery: string;
+  onAdvancedQueryChange: (query: string) => void;
+  advancedLogic: 'AND' | 'OR';
+  onAdvancedLogicChange: (logic: 'AND' | 'OR') => void;
 }
 
 export function SearchResultsPanel({
@@ -41,6 +47,12 @@ export function SearchResultsPanel({
   categories,
   selectedCategoryId,
   onCategoryChange,
+  searchMode,
+  onSearchModeChange,
+  advancedQuery,
+  onAdvancedQueryChange,
+  advancedLogic,
+  onAdvancedLogicChange,
 }: SearchResultsPanelProps) {
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
@@ -65,6 +77,26 @@ export function SearchResultsPanel({
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Search Input and Filters */}
       <div className="p-3 space-y-3 border-b shrink-0">
+        {/* Search Mode Selector */}
+        <div className="space-y-2">
+          <label className="text-xs text-muted-foreground">
+            Chế độ tìm kiếm:
+          </label>
+          <Select value={searchMode} onValueChange={onSearchModeChange}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="basic" className="text-xs">
+                Tìm kiếm cơ bản
+              </SelectItem>
+              <SelectItem value="advanced" className="text-xs">
+                Tìm kiếm nâng cao
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Search Input */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -85,6 +117,52 @@ export function SearchResultsPanel({
             </Button>
           )}
         </div>
+
+        {/* Advanced Search Controls */}
+        {searchMode === 'advanced' && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-muted-foreground shrink-0">
+                Logic:
+              </label>
+              <Select value={advancedLogic} onValueChange={onAdvancedLogicChange}>
+                <SelectTrigger className="h-8 text-xs w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AND" className="text-xs">
+                    AND
+                  </SelectItem>
+                  <SelectItem value="OR" className="text-xs">
+                    OR
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Lọc thêm (ngăn cách bởi dấu ;)..."
+                value={advancedQuery}
+                onChange={(e) => onAdvancedQueryChange(e.target.value)}
+                className="pl-10 h-9 text-xs"
+              />
+              {advancedQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onAdvancedQueryChange('')}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              💡 Ví dụ: LINKFLG;create
+            </p>
+          </div>
+        )}
 
         {/* Category Filter */}
         <div className="space-y-2">

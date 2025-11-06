@@ -27,6 +27,12 @@ interface SidebarProps {
   categories: UserCategory[];
   selectedCategoryId: string;
   onCategoryChange: (categoryId: string) => void;
+  searchMode: 'basic' | 'advanced';
+  onSearchModeChange: (mode: 'basic' | 'advanced') => void;
+  advancedSearchQuery: string;
+  onAdvancedSearchQueryChange: (query: string) => void;
+  advancedSearchLogic: 'AND' | 'OR';
+  onAdvancedSearchLogicChange: (logic: 'AND' | 'OR') => void;
 }
 
 export function Sidebar({
@@ -44,6 +50,12 @@ export function Sidebar({
   categories,
   selectedCategoryId,
   onCategoryChange,
+  searchMode,
+  onSearchModeChange,
+  advancedSearchQuery,
+  onAdvancedSearchQueryChange,
+  advancedSearchLogic,
+  onAdvancedSearchLogicChange,
 }: SidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('explorer');
 
@@ -131,6 +143,12 @@ export function Sidebar({
                 categories={categories}
                 selectedCategoryId={selectedCategoryId}
                 onCategoryChange={onCategoryChange}
+                searchMode={searchMode}
+                onSearchModeChange={onSearchModeChange}
+                advancedQuery={advancedSearchQuery}
+                onAdvancedQueryChange={onAdvancedSearchQueryChange}
+                advancedLogic={advancedSearchLogic}
+                onAdvancedLogicChange={onAdvancedSearchLogicChange}
               />
             </div>
           </div>

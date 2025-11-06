@@ -32,6 +32,9 @@ export function ContentRoute() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchFilterType, setSearchFilterType] = useState<'all' | 'sql' | 'javascript'>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+  const [searchMode, setSearchMode] = useState<'basic' | 'advanced'>('basic');
+  const [advancedSearchQuery, setAdvancedSearchQuery] = useState('');
+  const [advancedSearchLogic, setAdvancedSearchLogic] = useState<'AND' | 'OR'>('AND');
   
   // Settings state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -99,11 +102,40 @@ export function ContentRoute() {
       try {
         const definitionType = searchFilterType === 'all' ? undefined : searchFilterType;
         const categoryId = selectedCategoryId === 'all' ? undefined : selectedCategoryId;
-        const results = await searchIndexService.search(searchQuery, {
+        let results = await searchIndexService.search(searchQuery, {
           limit: 1000,
           definitionType,
           categoryId,
         });
+
+        // Apply advanced search filtering
+        if (searchMode === 'advanced' && advancedSearchQuery.trim()) {
+          const keywords = advancedSearchQuery
+            .split(';')
+            .map(k => k.trim().toLowerCase())
+            .filter(k => k.length > 0);
+
+          if (keywords.length > 0) {
+            results = results.filter(result => {
+              // Search in all text content of the definition
+              const searchableText = [
+                result.definition.definitionName,
+                result.definition.sqlQuery || '',
+                result.definition.javaScriptCode || '',
+                ...result.matches.map(m => m.snippet),
+              ].join(' ').toLowerCase();
+
+              if (advancedSearchLogic === 'AND') {
+                // All keywords must be present
+                return keywords.every(keyword => searchableText.includes(keyword));
+              } else {
+                // At least one keyword must be present
+                return keywords.some(keyword => searchableText.includes(keyword));
+              }
+            });
+          }
+        }
+
         setSearchResults(results);
       } catch (error) {
         console.error('Search failed:', error);
@@ -115,7 +147,7 @@ export function ContentRoute() {
 
     const timeoutId = setTimeout(performSearch, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, searchFilterType, selectedCategoryId]);
+  }, [searchQuery, searchFilterType, selectedCategoryId, searchMode, advancedSearchQuery, advancedSearchLogic]);
 
   const handleFileSelect = async (node: FileTreeNode) => {
     if (node.type === 'file') {
@@ -164,6 +196,8 @@ export function ContentRoute() {
     setSearchResults([]);
     setHighlightPositions([]);
     setSelectedCategoryId('all');
+    setAdvancedSearchQuery('');
+    setSearchMode('basic');
   };
 
   return (
@@ -237,6 +271,12 @@ export function ContentRoute() {
                 categories={categories}
                 selectedCategoryId={selectedCategoryId}
                 onCategoryChange={setSelectedCategoryId}
+                searchMode={searchMode}
+                onSearchModeChange={setSearchMode}
+                advancedSearchQuery={advancedSearchQuery}
+                onAdvancedSearchQueryChange={setAdvancedSearchQuery}
+                advancedSearchLogic={advancedSearchLogic}
+                onAdvancedSearchLogicChange={setAdvancedSearchLogic}
               />
             </ResizablePanel>
 
