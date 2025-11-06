@@ -31,6 +31,7 @@ export function ContentRoute() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchFilterType, setSearchFilterType] = useState<'all' | 'sql' | 'javascript'>('all');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   
   // Settings state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -97,9 +98,11 @@ export function ContentRoute() {
       setIsSearching(true);
       try {
         const definitionType = searchFilterType === 'all' ? undefined : searchFilterType;
+        const categoryId = selectedCategoryId === 'all' ? undefined : selectedCategoryId;
         const results = await searchIndexService.search(searchQuery, {
           limit: 1000,
           definitionType,
+          categoryId,
         });
         setSearchResults(results);
       } catch (error) {
@@ -112,7 +115,7 @@ export function ContentRoute() {
 
     const timeoutId = setTimeout(performSearch, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, searchFilterType]);
+  }, [searchQuery, searchFilterType, selectedCategoryId]);
 
   const handleFileSelect = async (node: FileTreeNode) => {
     if (node.type === 'file') {
@@ -160,6 +163,7 @@ export function ContentRoute() {
     setSearchQuery('');
     setSearchResults([]);
     setHighlightPositions([]);
+    setSelectedCategoryId('all');
   };
 
   return (
@@ -230,6 +234,9 @@ export function ContentRoute() {
                 searchFilterType={searchFilterType}
                 onSearchFilterChange={setSearchFilterType}
                 onClearSearchResults={handleClearSearchResults}
+                categories={categories}
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={setSelectedCategoryId}
               />
             </ResizablePanel>
 

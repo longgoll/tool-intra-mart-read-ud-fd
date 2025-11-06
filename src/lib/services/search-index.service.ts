@@ -104,13 +104,14 @@ class SearchIndexService {
       limit?: number;
       fields?: ('definitionName' | 'content')[];
       definitionType?: 'sql' | 'javascript';
+      categoryId?: string;
     } = {}
   ): Promise<SearchResult[]> {
     if (!this.index || !this.isIndexed) {
       throw new Error('Search index not initialized. Call buildIndex first.');
     }
 
-    const { limit = 50, fields, definitionType } = options;
+    const { limit = 50, fields, definitionType, categoryId } = options;
 
     // Perform search
     const searchFields = fields || ['definitionName', 'content'];
@@ -137,6 +138,11 @@ class SearchIndexService {
 
         // Filter by definition type if specified
         if (definitionType && definition.definitionType !== definitionType) {
+          continue;
+        }
+
+        // Filter by category if specified
+        if (categoryId && definition.categoryId !== categoryId) {
           continue;
         }
 

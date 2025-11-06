@@ -2,8 +2,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, FileCode2, Loader2, X, MapPin } from 'lucide-react';
+import { Search, FileCode2, Loader2, X, MapPin, Folder } from 'lucide-react';
 import type { SearchResult } from '@/lib/services/search-index.service';
+import type { UserCategory } from '@/lib/types/user-definition.types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface SearchResultsPanelProps {
   results: SearchResult[];
@@ -15,6 +23,9 @@ interface SearchResultsPanelProps {
   filterType: 'all' | 'sql' | 'javascript';
   onFilterChange: (filter: 'all' | 'sql' | 'javascript') => void;
   onClearResults: () => void;
+  categories: UserCategory[];
+  selectedCategoryId: string;
+  onCategoryChange: (categoryId: string) => void;
 }
 
 export function SearchResultsPanel({
@@ -27,6 +38,9 @@ export function SearchResultsPanel({
   filterType,
   onFilterChange,
   onClearResults,
+  categories,
+  selectedCategoryId,
+  onCategoryChange,
 }: SearchResultsPanelProps) {
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
@@ -70,6 +84,29 @@ export function SearchResultsPanel({
               <X className="h-3 w-3" />
             </Button>
           )}
+        </div>
+
+        {/* Category Filter */}
+        <div className="space-y-2">
+          <label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Folder className="h-3 w-3" />
+            Tìm kiếm trong:
+          </label>
+          <Select value={selectedCategoryId} onValueChange={onCategoryChange}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Chọn thư mục" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">
+                Tất cả thư mục
+              </SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.categoryId} value={category.categoryId} className="text-xs">
+                  {category.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Filter Buttons */}

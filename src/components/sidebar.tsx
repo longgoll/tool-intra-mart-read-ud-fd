@@ -4,7 +4,7 @@ import { SearchResultsPanel } from '@/components/search-results-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { FolderTree, Search } from 'lucide-react';
-import type { FileTreeNode } from '@/lib/types/user-definition.types';
+import type { FileTreeNode, UserCategory } from '@/lib/types/user-definition.types';
 import type { SearchResult } from '@/lib/services/search-index.service';
 
 type SidebarView = 'explorer' | 'search';
@@ -14,7 +14,7 @@ interface SidebarProps {
   fileTree: FileTreeNode[];
   onFileSelect: (node: FileTreeNode) => void;
   selectedFileId?: string;
-  
+
   // Search props
   searchResults: SearchResult[];
   isSearching: boolean;
@@ -24,6 +24,9 @@ interface SidebarProps {
   searchFilterType: 'all' | 'sql' | 'javascript';
   onSearchFilterChange: (filter: 'all' | 'sql' | 'javascript') => void;
   onClearSearchResults: () => void;
+  categories: UserCategory[];
+  selectedCategoryId: string;
+  onCategoryChange: (categoryId: string) => void;
 }
 
 export function Sidebar({
@@ -38,6 +41,9 @@ export function Sidebar({
   searchFilterType,
   onSearchFilterChange,
   onClearSearchResults,
+  categories,
+  selectedCategoryId,
+  onCategoryChange,
 }: SidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('explorer');
 
@@ -122,6 +128,9 @@ export function Sidebar({
                 filterType={searchFilterType}
                 onFilterChange={onSearchFilterChange}
                 onClearResults={onClearSearchResults}
+                categories={categories}
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={onCategoryChange}
               />
             </div>
           </div>
