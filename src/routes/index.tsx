@@ -1,16 +1,26 @@
+import { useState } from "react"
 import { FileUpload } from "@/components/FileUpload"
+import { IntraMartLogin } from "@/components/IntraMartLogin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppContext } from "@/contexts/AppContext"
 import { useNavigate } from "@tanstack/react-router"
-import { FileCode2, ArrowRight } from "lucide-react"
+import { FileCode2, ArrowRight, Upload, LogIn } from "lucide-react"
+
+type InputMode = 'upload' | 'login'
 
 export function IndexRoute() {
   const { isDataLoaded, stats } = useAppContext()
   const navigate = useNavigate()
+  const [inputMode, setInputMode] = useState<InputMode>('upload')
 
   const handleViewData = () => {
     navigate({ to: '/content' })
+  }
+
+  const handleLoginSuccess = () => {
+    // TODO: After login, fetch data from IntraMart
+    console.log('Login successful - ready to fetch data')
   }
 
   return (
@@ -47,7 +57,32 @@ export function IndexRoute() {
         </Card>
       )}
 
-      <FileUpload />
+      {/* Mode Toggle */}
+      <div className="flex gap-2 p-1 bg-muted rounded-lg w-full max-w-2xl">
+        <Button
+          variant={inputMode === 'upload' ? 'default' : 'ghost'}
+          className="flex-1 gap-2"
+          onClick={() => setInputMode('upload')}
+        >
+          <Upload className="h-4 w-4" />
+          Upload File
+        </Button>
+        <Button
+          variant={inputMode === 'login' ? 'default' : 'ghost'}
+          className="flex-1 gap-2"
+          onClick={() => setInputMode('login')}
+        >
+          <LogIn className="h-4 w-4" />
+          Đăng nhập IntraMart
+        </Button>
+      </div>
+
+      {/* Content based on mode */}
+      {inputMode === 'upload' ? (
+        <FileUpload />
+      ) : (
+        <IntraMartLogin onLoginSuccess={handleLoginSuccess} />
+      )}
     </div>
   )
 }
