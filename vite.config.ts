@@ -14,5 +14,16 @@ export default defineConfig({
   server: {
     port: 3002,
     host: true,
+    proxy: {
+      // Proxy requests to IntraMart server to bypass CORS
+      '/api/intramart': {
+        target: 'http://158.101.91.74',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/intramart/, ''),
+        // Handle cookies
+        cookieDomainRewrite: 'localhost',
+        secure: false,
+      }
+    }
   },
 })

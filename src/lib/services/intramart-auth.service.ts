@@ -40,8 +40,12 @@ class IntraMartAuthService {
   async getLoginTokens(serverUrl: string): Promise<LoginTokens> {
     this.baseUrl = serverUrl.replace(/\/$/, ''); // Remove trailing slash
     
+    // Use proxy to bypass CORS
+    // The proxy is configured in vite.config.ts to forward /api/intramart/* to the IntraMart server
+    const proxyUrl = '/api/intramart';
+    
     try {
-      const response = await fetch(`${this.baseUrl}/imdi/login`, {
+      const response = await fetch(`${proxyUrl}/imdi/login`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -98,6 +102,9 @@ class IntraMartAuthService {
   async login(credentials: LoginCredentials, tokens: LoginTokens): Promise<LoginResult> {
     this.baseUrl = credentials.serverUrl.replace(/\/$/, '');
     
+    // Use proxy to bypass CORS
+    const proxyUrl = '/api/intramart';
+    
     try {
       const urlencoded = new URLSearchParams();
       urlencoded.append('im_user', credentials.username);
@@ -106,7 +113,7 @@ class IntraMartAuthService {
       urlencoded.append('im_page_key', '');
       urlencoded.append('im_secure_token', tokens.im_secure_token);
 
-      const response = await fetch(`${this.baseUrl}/imdi/certification`, {
+      const response = await fetch(`${proxyUrl}/imdi/certification`, {
         method: 'POST',
         credentials: 'include',
         headers: {
