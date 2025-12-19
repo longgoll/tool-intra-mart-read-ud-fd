@@ -19,8 +19,8 @@ export function IndexRoute() {
   }
 
   const handleLoginSuccess = () => {
-    // TODO: After login, fetch data from IntraMart
-    console.log('Login successful - ready to fetch data')
+    // Navigate to user definitions page after successful login
+    navigate({ to: '/user-definitions' })
   }
 
   return (

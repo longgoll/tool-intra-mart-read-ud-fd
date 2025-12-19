@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router'
 import { IndexRoute } from './routes/index'
 import { ContentRoute } from './routes/content'
+import { UserDefinitionsRoute } from './routes/user-definitions'
 import { Toaster } from '@/components/ui/sonner'
 import { AppProvider } from '@/contexts/AppContext'
 import { ThemeProvider } from 'next-themes'
@@ -31,8 +32,15 @@ const contentRoute = createRoute({
   component: ContentRoute,
 })
 
+// User definitions route (trang chọn user definition sau khi login)
+const userDefinitionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/user-definitions',
+  component: UserDefinitionsRoute,
+})
+
 // Tạo route tree
-const routeTree = rootRoute.addChildren([indexRoute, contentRoute])
+const routeTree = rootRoute.addChildren([indexRoute, contentRoute, userDefinitionsRoute])
 
 // Tạo router instance
 export const router = createRouter({ routeTree })
